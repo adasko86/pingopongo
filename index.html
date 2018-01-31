@@ -1,0 +1,571 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Pingo Pongo">
+    <meta name="keywords" content="HTML,CSS,XML,JavaScript">
+    <meta name="author" content="PROINFO Adam Świątek">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="icon/pi.ico">
+    <link href="https://fonts.googleapis.com/css?family=Monda:400,700" rel="stylesheet">
+    <title>Pingo</title>
+    <style>
+        /* The Modal (background) */
+        .modal {
+            position: absolute; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            padding-left: 0px; /* Location of the box */
+            height: 500px;
+            width: 1000px;
+            background-color: rgba(0, 0, 0, 0.75);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background-color: #0f0f0f;
+        }
+
+        .difficult {
+            position: absolute; /*it can be fixed too*/
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            margin: auto;
+            /*this to solve "the content will not be cut when the window is smaller than the content": */
+            max-width: 100%;
+            max-height: 100%;
+            overflow: auto;
+            height: 500px;
+            width: 1000px;
+            background-color: rgba(255, 255, 255, 0.55);
+        }
+
+        td:hover {
+            background-color: yellow;
+        }
+
+        canvas {
+            border: 2px solid #ffffff;
+            position: absolute;
+            top:0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            margin:auto;
+        }
+
+        .first_screen {
+            position: absolute; /*it can be fixed too*/
+            left: 0;
+            right: 0;
+            margin: auto;
+            overflow: auto;
+        }
+
+        .level_screen {
+            position: absolute; /*it can be fixed too*/
+            left: 0;
+            right: 0;
+            margin: auto;
+            overflow: auto;
+        }
+
+            .level_screen:hover {
+                transform: scale(1.2);
+            }
+        
+        <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+/*
+        body {
+            height: 100vh;
+            background-color: black;
+            display: flex;
+        }
+*/
+
+        ul {
+            width: 100%;
+            text-align:center;
+            padding-top: 90px;
+            padding-left: 0px;
+        }
+
+        li {
+            color: yellow;
+            display: inline-block;
+            font-size: 50px;
+            font-family: "Monda";
+            font-weight: bold;
+            letter-spacing: 4px;
+            text-shadow: 0 0 30px white, 0 0 10px yellow;
+        }
+
+            li:nth-child(3) {
+                transform: rotate(18deg) translateY(4px);
+                animation: neon 2s infinite;
+            }
+
+        @keyframes neon {
+            0% {
+                opacity: 0;
+                /*transform: scale(1)*/
+            }
+            5% {
+                opacity: 1;
+                /*transform: scale(1)*/
+            }
+            20% {
+                opacity: 1;
+                /*transform: scale(1)*/
+            }
+            25% {
+                opacity: 0.5;
+                /*transform: scale(1)*/
+            }
+            30% {
+                opacity: 0.5;
+                /*transform: scale(1)*/
+            }
+            32% {
+                opacity: 1;
+                /*transform: scale(1)*/
+            }
+            45% {
+                opacity: 1;
+                /*transform: scale(1)*/
+            }
+            46% {
+                opacity: 0.5;
+                /*transform: scale(1)*/
+            }
+            54% {
+                opacity: 0.5;
+                /*transform: scale(1)*/
+            }
+            55% {
+                opacity: 1;
+                /*transform: scale(1)*/
+            }
+            78% {
+                opacity: 0;
+                /*transform: scale(1)*/
+            }
+            88% {
+                opacity: 0;
+                /*transform: scale(1)*/
+            }
+            90% {
+                opacity: 1;
+                /*transform: scale(1)*/
+            }
+            93% {
+                opacity: 1;
+                /*transform: scale(1)*/
+            }
+            95% {
+                opacity: 0;
+                /*transform: scale(1)*/
+            }
+            97% {
+                opacity: 0;
+                /*transform: scale(1)*/
+            }
+            98% {
+                opacity: 1;
+                /*transform: scale(1)*/
+            }
+            100% {
+                opacity: 0;
+                /*transform: scale(2)*/
+            }
+        }
+    </style>
+        
+        
+    </style>
+</head>
+<body>
+    <div id="myModal" class="modal">
+        <div id="difficult" class="difficult">
+            <img class="first_screen" src="icon/DIFFICULT.png" />
+            <img class="level_screen" style="margin-top:180px;" src="icon/EASY_small.png" onmousedown="startgame('easy')" />
+            <img class="level_screen" style="margin-top:260px;" src="icon/NORMAL_small.png" onmousedown="startgame('normal')" />
+            <img class="level_screen" style="margin-top:340px;" src="icon/HARD_small.png" onmousedown="startgame('hard')" />
+        </div>
+    </div>
+    <ul>
+        <li>P</li>
+        <li>R</li>
+        <li>O</li>
+        <li>I</li>
+        <li>N</li>
+        <li>F</li>
+        <li>O</li>
+    </ul>
+    <div>
+    <canvas id="can"></canvas>
+    </div>
+    <script>
+        const canva = document.getElementById('can');
+        const ctx = canva.getContext('2d');
+
+        //rozmiar canvy
+        canva.height = 500;
+        canva.width = 1000;
+
+        //rozmiar paletki
+        const paddleH = 100;
+        const paddleW = 10;
+
+        //pozycja paletek
+        const playerX = 70;
+        let playerY = 200;
+        const aiX = 920;
+        let aiY = 200;
+
+        //rozmiar canvy
+        const canvaW = canva.width;
+        const canvaH = canva.height;
+
+        //rozmiar piłki
+        const ballSize = 20;
+
+        //pozycja piłki
+        let ballX = canvaW / 2 - ballSize / 2;
+        let ballY = canvaH / 2 - ballSize / 2;
+
+        //prędkość piłki
+        let ballSpeedX = getRandomizer(5, 10);
+        let ballSpeedY = getRandomizer(5, 10);
+
+        //human points
+        var humanPoint = 0;
+        //ai points
+        var aiPoint = 0;
+
+        //Speed AI reaction 
+        //if we change AI reaction speeds to lower value then AI level is lower
+        var aiReactionSpeed1 = 18;
+        var aiReactionSpeed2 = 9;
+        var aiReactionSpeed3 = 2;
+		let stopGame = false;
+
+		
+        //document.getElementById('can').style.cursor = "none";
+		
+        //rysowanie piłki
+        function drawBall() {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(ballX, ballY, ballSize, ballSize);
+
+            ballY += ballSpeedY;
+            ballX += ballSpeedX;
+
+            if (ballY <= 0 )
+			{
+				ballY = 0;
+                ballSpeedY = -ballSpeedY;
+			}
+			else if(ballY + ballSize >= canvaH) 
+			{
+				ballY = canvaH - ballSize;
+                ballSpeedY = -ballSpeedY;
+            }
+            
+			if(isCollideUser()) {
+                ballX = playerX+ballSize;
+                ballSpeedX = -ballSpeedX;
+                speedUp();
+            } 
+			else if (ballX <= 0) 
+			{
+                aiPoint += 1;
+				pointRestart();
+				
+            }
+            if (isCollideAI()) {
+                ballX = aiX - ballSize;
+                ballSpeedX = -ballSpeedX;
+                speedUp();
+            }
+			else if (ballX + ballSize >= canvaW)
+			{
+                humanPoint += 1;
+				pointRestart();
+			}
+
+            if (aiPoint == 6) {
+				stopGame = true;
+				drawYouLose();
+            }
+            if (humanPoint == 6) {
+				stopGame = true;
+				drawYouWin();
+            }
+        }
+
+		//function draw You Lose
+		function drawYouLose()
+		{
+				ctx.font = "100px Arial";
+				ctx.fillStyle = 'white';
+				ctx.fillText("YOU LOSE!",225,300);
+            
+                ctx.fillStyle = 'black';
+                ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+            
+				ctx.font = "30px Arial";
+				ctx.fillStyle = 'white';
+				ctx.fillText("Restart",455,400);
+		}
+		
+		//function draw You Win
+		function drawYouWin()
+		{
+				ctx.font = "120px Arial";
+				ctx.fillStyle = 'white';
+				ctx.fillText("YOU WIN!",225,300);
+            
+                ctx.fillStyle = 'black';
+                ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+            
+				ctx.font = "30px Arial";
+				ctx.fillStyle = 'white';
+				ctx.fillText("Restart",455,400);
+		}
+		
+        rect = {
+            x: 455,
+            y: 375,
+            w: 100,
+            h: 30
+        };
+        
+        //click event listener
+        canva.addEventListener('click', restartGame, false);
+        
+        //function watch if user click to restart (only when variable stopGame is true)
+        function restartGame(e) 
+        {
+            var p = getMousePos(e);
+            if(!stopGame)
+                return;
+            if (p.x >= rect.x && p.x <= rect.x + rect.w &&
+                p.y >= rect.y && p.y <= rect.y + rect.h) {
+
+				pointRestart();
+                humanPoint = 0;
+                aiPoint = 0;
+                stopGame = false;
+            }
+        }
+        
+        //function returns mouse position
+        function getMousePos(e) {
+            var r = canva.getBoundingClientRect();
+            return {
+                x: e.clientX - r.left,
+                y: e.clientY - r.top
+            };
+        }
+        
+        //rysowanie stołu i lini środkowej
+        function drawTable() {
+            //rysujemy stół
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, canvaW, canvaH);
+
+            if(!stopGame){
+                //rysujemy przerywaną linię
+                ctx.beginPath();
+                ctx.setLineDash([10, 20]);
+                ctx.moveTo((canvaW / 2), 20);
+                ctx.lineTo((canvaW / 2), canvaH - 15);
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "#FFFFFF";
+                ctx.stroke();
+            }
+        }
+
+		//function draw AI and human points
+		function drawPoint()
+		{
+				ctx.font = "60px Arial";
+				ctx.fillStyle = 'white';
+				ctx.fillText(aiPoint,575,50);
+				
+				ctx.font = "60px Arial";
+				ctx.fillStyle = 'white';
+				ctx.fillText(humanPoint,400,50);
+		}
+		
+        //rysowanie paletki gracza
+        function drawPaddlePlayer() {
+            ctx.fillStyle = 'lightgreen';
+            ctx.fillRect(playerX, playerY, paddleW, paddleH);
+        }
+
+        //rysowanie paletki sztucznej inteligencji
+        function drawPaddleAI() {
+            ctx.fillStyle = 'aqua';
+            ctx.fillRect(aiX, aiY, paddleW, paddleH);
+        }
+
+        canva.addEventListener("mousemove", playserPositon);
+        function playserPositon(event) {
+
+            playerY = event.clientY - canva.offsetTop - paddleH / 2;
+
+            //jeżeli paletka chce wyjechać za canve od dołu ustawiamy wysokość na (canvaH - paddleH)
+            if (playerY >= canvaH - paddleH) {
+                playerY = canvaH - paddleH;
+            }
+
+            //jeżeli paletka chce wyjechać za canve od góry usatwiamy wysokość na 0
+            if (playerY <= 0) {
+                playerY = 0;
+            }
+
+            //aiY = playerY;
+        }
+
+        //przyśpieszenie piłeczki
+        function speedUp() {
+            //prędkosć X
+            if (ballSpeedX > 0 && ballSpeedX < 16) {
+                ballSpeedX += .4;
+            }
+            else if (ballSpeedY < 0 && ballSpeedX > -16) {
+                ballSpeedX -= .4;
+            }
+
+            //prędkość Y
+            if (ballSpeedY > 0 && ballSpeedY < 16) {
+                ballSpeedY += .2;
+            }
+            else if (ballSpeedY < 0 && ballSpeedY > -16) {
+                ballSpeedY -= .2;
+            }
+        }
+
+        //sztuczn inteligencja
+        function aiPosition() {
+            var middlePaddle = aiY + paddleH / 2;
+            var middleBall = ballY + ballSize / 2;
+            if (ballX > 500) {
+                if (middlePaddle - middleBall > 200) {
+                    aiY -= aiReactionSpeed1;
+                }
+                else if (middlePaddle - middleBall > 50) {
+                    aiY -= aiReactionSpeed2;
+                }
+                else if (middlePaddle - middleBall < -200) {
+                    aiY += aiReactionSpeed1;
+                }
+                else if (middlePaddle - middleBall < -50) {
+                    aiY += aiReactionSpeed2;
+                }
+            }
+            else if (ballX <= 500 && ballX > 150) {
+                if (middlePaddle - middleBall > 100) {
+                    aiY -= aiReactionSpeed3;
+                }
+                else if (middlePaddle - middleBall < -100) {
+                    aiY += aiReactionSpeed3;
+                }
+            }
+        }
+
+		//find is collision detected USER
+		function isCollideUser() {
+			return !(
+				((playerY + paddleH) < (ballY)) ||
+				(playerY > (ballY + ballSize)) ||
+				((playerX + paddleW) < ballX) ||
+				(playerX > (ballX + ballSize))
+			);
+		}
+		
+		//find is collision detected AI
+		function isCollideAI() {
+			return !(
+				((aiY + paddleH) < (ballY)) ||
+				(aiY > (ballY + ballSize)) ||
+				((aiX + paddleW) < ballX) ||
+				(aiX > (ballX + ballSize))
+			);
+		}
+		
+		function getRandomizer(bottom, top) {
+			return Math.floor( Math.random() * ( 1 + top - bottom ) ) + bottom;
+		}
+		
+		function pointRestart()
+		{
+			playerY = 200;
+			aiY = 200;
+			
+			ballX = canvaW / 2 - ballSize / 2;
+			ballSpeedX = getRandomizer(5, 10);
+			ballSpeedY = getRandomizer(5, 10);
+		}
+		
+        function game() {
+			if(!stopGame)
+			{
+				drawTable();
+				drawBall();
+				drawPaddlePlayer();
+				drawPaddleAI();
+				aiPosition();
+				drawPoint();
+			}	
+        }
+        
+        window.addEventListener('resize', function(event)
+        {
+            resize();
+        });
+        
+        resize();
+        function resize()
+        {
+		      document.getElementById("myModal").style.top = ((window.innerHeight - canva.height) / 2) + "px";
+		      document.getElementById("myModal").style.left = ((window.innerWidth - canva.width) / 2) - 8 + "px";
+        }
+        
+		game();
+        //początek gry
+        function startgame(difficult) {
+			if(difficult == "easy")
+			{
+				console.log(difficult);
+				aiReactionSpeed1 = 18-2;
+				aiReactionSpeed2 = 9-1;
+				aiReactionSpeed3 = 2-1;
+			}
+			else if(difficult == "hard")
+			{
+				console.log(difficult);
+				aiReactionSpeed1 = 18+2;
+				aiReactionSpeed2 = 9+1;
+				aiReactionSpeed3 = 2+1;
+			}
+			
+            let modalclass = document.getElementsByClassName('modal');
+            modalclass[0].style.display = "none";
+			setInterval(game, 1000 / 60);
+        }
+        
+    </script>
+
+</body>
+</html>
